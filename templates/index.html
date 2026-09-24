@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cook-Book | Recipe Board</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f9f9f9;
+            margin: 0;
+            padding: 20px;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        /* This creates the Pinterest-style masonry grid */
+        .recipe-grid {
+            columns: 4 250px; /* 4 columns, minimum 250px wide */
+            column-gap: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .recipe-card {
+            background: white;
+            border-radius: 15px;
+            padding: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            break-inside: avoid; /* Prevents cards from breaking across columns */
+        }
+        .recipe-card img {
+            width: 100%;
+            border-radius: 10px;
+        }
+        .recipe-title {
+            font-size: 1.2rem;
+            margin: 10px 0 5px;
+            font-weight: bold;
+        }
+        .recipe-author {
+            color: #777;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Cook-Book 🍳</h1>
+
+    <div class="recipe-grid">
+        <!-- We will use Python later to inject recipes here automatically -->
+        
+        <!-- Example Card 1 -->
+        <div class="recipe-card">
+            <img src="https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=500" alt="Pizza">
+            <div class="recipe-title">Classic Margherita Pizza</div>
+            <div class="recipe-author">By Chef Mario</div>
+        </div>
+
+        <!-- Example Card 2 -->
+        <div class="recipe-card">
+            <img src="https://images.unsplash.com/photo-1482049016688-2d3e1b311543?w=500" alt="Sandwich">
+            <div class="recipe-title">Avocado Toast & Egg</div>
+            <div class="recipe-author">By Healthy Eats</div>
+        </div>
+
+    </div>
+
+</body>
+</html>
