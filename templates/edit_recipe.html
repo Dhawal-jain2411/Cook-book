@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Edit Recipe - CookBook :DR2</title>
+    <style>
+        body { margin: 0; font-family: Arial, sans-serif; display: flex; background: #f4f6f8; }
+        .sidebar { width: 220px; background: #1a2530; color: white; height: 100vh; padding: 20px; position: fixed; }
+        .sidebar h2 { color: #4caf50; }
+        .sidebar a { display: block; color: #b0bec5; text-decoration: none; padding: 15px 0; border-bottom: 1px solid #2c3e50; }
+        .sidebar a:hover { color: white; }
+        .main-content { margin-left: 260px; padding: 40px; flex: 1; }
+        .recipe-form { display: flex; flex-direction: column; gap: 15px; max-width: 600px; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        .recipe-form input, .recipe-form select, .recipe-form textarea { padding: 12px; border: 1px solid #ccc; border-radius: 6px; font-size: 1rem; font-family: Arial;}
+        .recipe-form button { padding: 12px; background: #ffb300; color: white; border: none; border-radius: 6px; font-size: 1rem; cursor: pointer; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <h2>CookBook :DR2</h2>
+        <a href="/">🏠 Home</a>
+        <a href="/add-recipe">➕ Add Recipe</a>
+        <a href="/my-recipes" style="color:white;">🍳 My Recipes</a>
+        <a href="/favorites">❤️ Favorites</a>
+        <a href="/profile">👤 Profile & Settings</a>
+    </div>
+    <div class="main-content">
+        <h1>✏️ Edit Recipe</h1>
+        <form class="recipe-form" action="/edit-recipe/{{ recipe._id }}" method="POST">
+            <label>Recipe Name:</label>
+            <input type="text" name="title" value="{{ recipe.title }}" required>
+            
+            <label>Image URL:</label>
+            <input type="text" name="image_url" value="{{ recipe.image_url }}" required>
+            
+            <label>Ingredients (comma separated):</label>
+            <input type="text" name="ingredients" value="{{ recipe.ingredients | join(', ') }}" required>
+            
+            <label>Instructions:</label>
+            <textarea name="instructions" rows="5" required>{{ recipe.instructions }}</textarea>
+            
+            <label>Cooking Time (minutes):</label>
+            <input type="number" name="time_minutes" value="{{ recipe.time_minutes }}" required>
+            
+            <label>Difficulty:</label>
+            <select name="difficulty" required>
+                <option value="Easy" {% if recipe.difficulty == 'Easy' %}selected{% endif %}>Easy</option>
+                <option value="Medium" {% if recipe.difficulty == 'Medium' %}selected{% endif %}>Medium</option>
+                <option value="Hard" {% if recipe.difficulty == 'Hard' %}selected{% endif %}>Hard</option>
+            </select>
+            
+            <label>Category Tag:</label>
+            <input type="text" name="tag" value="{{ recipe.tag }}" required>
+            
+            <button type="submit">Update Recipe</button>
+            <a href="/my-recipes" style="text-align: center; color: #666; margin-top: 10px; text-decoration: none;">Cancel</a>
+        </form>
+    </div>
+</body>
+</html>

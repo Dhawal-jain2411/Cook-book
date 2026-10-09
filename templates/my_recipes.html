@@ -1,8 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>CookBook :DR2</title>
+    <title>My Recipes - CookBook :DR2</title>
     <style>
         body { margin: 0; font-family: Arial, sans-serif; display: flex; background: #f4f6f8; }
         .sidebar { width: 220px; background: #1a2530; color: white; height: 100vh; padding: 20px; position: fixed; }
@@ -10,12 +9,8 @@
         .sidebar a { display: block; color: #b0bec5; text-decoration: none; padding: 15px 0; border-bottom: 1px solid #2c3e50; }
         .sidebar a:hover { color: white; }
         .main-content { margin-left: 260px; padding: 40px; flex: 1; }
-        .search-bar-container { display: flex; gap: 10px; margin-bottom: 30px; background: white; padding: 15px; border-radius: 10px; }
-        .search-bar-container input, .search-bar-container select { flex: 1; padding: 10px; border: 1px solid #ccc; border-radius: 5px; }
-        .search-bar-container button { padding: 10px 20px; background: #4caf50; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;}
         .recipe-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 20px; }
-        .recipe-card { background: white; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1); cursor: pointer; text-decoration: none; color: black; display: block; transition: transform 0.2s;}
-        .recipe-card:hover { transform: translateY(-5px); }
+        .recipe-card { background: white; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1); text-decoration: none; color: black; display: block;}
         .recipe-card img { width: 100%; height: 200px; object-fit: cover; }
         .recipe-info { padding: 15px; }
         .recipe-title { font-weight: bold; font-size: 1.1rem; margin-bottom: 10px; }
@@ -25,9 +20,9 @@
 <body>
     <div class="sidebar">
         <h2>CookBook :DR2</h2>
-        <a href="/" style="color:white;">🏠 Home</a>
+        <a href="/">🏠 Home</a>
         <a href="/add-recipe">➕ Add Recipe</a>
-        <a href="/my-recipes">🍳 My Recipes</a>
+        <a href="/my-recipes" style="color:white;">🍳 My Recipes</a>
         <a href="/favorites">❤️ Favorites</a>
         <a href="/profile">👤 Profile & Settings</a>
         {% if session.get('is_admin') %}
@@ -35,33 +30,27 @@
         {% endif %}
     </div>
     <div class="main-content">
-        <h1>Discover Recipes</h1>
-        <form class="search-bar-container" action="/" method="GET">
-            <input type="text" name="search" placeholder="Search by food OR ingredients (e.g. bread, maggi, paneer...)">
-            <select name="category">
-                <option value="">All Categories</option>
-                <!-- Dynamic categories loaded straight from MongoDB! -->
-                {% for cat in categories %}
-                <option value="{{ cat }}">{{ cat }}</option>
-                {% endfor %}
-            </select>
-            <button type="submit">Search</button>
-        </form>
+        <h1>My Uploaded Recipes</h1>
         <div class="recipe-grid">
             {% for recipe in recipes %}
-            <a href="/recipe/{{ recipe._id }}" class="recipe-card">
-                <img src="{{ recipe.image_url }}" alt="Recipe Image">
+            <div class="recipe-card">
+                <a href="/recipe/{{ recipe._id }}"><img src="{{ recipe.image_url }}" alt="Recipe Image"></a>
                 <div class="recipe-info">
                     <div class="recipe-title">{{ recipe.title }}</div>
                     <p style="color: #666; font-size: 0.9rem;">⏱ {{ recipe.time_minutes }} mins | 👨‍🍳 {{ recipe.difficulty }}</p>
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px;">
                         <span class="tag">{{ recipe.tag }}</span>
-                        <form action="/favorite/{{ recipe._id }}" method="POST" style="margin: 0;">
-                            <button type="submit" style="background: #ff4081; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 0.8rem; font-weight: bold;">❤️ Save</button>
-                        </form>
+                        <div style="display: flex; gap: 8px;">
+                            <a href="/edit-recipe/{{ recipe._id }}" style="background: #ffb300; color: white; padding: 6px 12px; border-radius: 4px; text-decoration: none; font-size: 0.8rem; font-weight: bold;">✏️ Edit</a>
+                            <form action="/delete-recipe/{{ recipe._id }}" method="POST" style="margin: 0;">
+                                <button type="submit" style="background: #e53935; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 0.8rem; font-weight: bold;">🗑️ Delete</button>
+                            </form>
+                        </div>
                     </div>
                 </div>
-            </a>
+            </div>
+            {% else %}
+            <p>You haven't uploaded any recipes yet!</p>
             {% endfor %}
         </div>
     </div>

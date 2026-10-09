@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>{{ recipe.title }} - CookBook :DR2</title>
+    <style>
+        body { margin: 0; font-family: Arial, sans-serif; display: flex; background: #f4f6f8; }
+        .sidebar { width: 220px; background: #1a2530; color: white; height: 100vh; padding: 20px; position: fixed; }
+        .sidebar h2 { color: #4caf50; }
+        .sidebar a { display: block; color: #b0bec5; text-decoration: none; padding: 15px 0; border-bottom: 1px solid #2c3e50; }
+        .sidebar a:hover { color: white; }
+        .main-content { margin-left: 260px; padding: 40px; flex: 1; }
+        .detail-card { background: white; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1); max-width: 800px;}
+        .detail-card img { width: 100%; height: 400px; object-fit: cover; }
+        .detail-info { padding: 30px; }
+        .ingredients-list { background: #f9f9f9; padding: 20px; border-radius: 8px; margin: 20px 0; border: 1px solid #eee;}
+        .ingredients-list span { background: #4caf50; color: white; padding: 5px 10px; border-radius: 15px; margin-right: 5px; display: inline-block; margin-bottom: 5px; font-size: 0.9rem;}
+        .instructions { white-space: pre-wrap; line-height: 1.6; font-size: 1.1rem;}
+        
+        /* New Comment Styles */
+        .comments-section { margin-top: 40px; border-top: 2px solid #eee; padding-top: 20px; }
+        .comment-box { background: #f9f9f9; padding: 15px; border-radius: 8px; margin-bottom: 10px; border: 1px solid #ddd; }
+        .comment-form { display: flex; flex-direction: column; gap: 10px; max-width: 500px; margin-bottom: 30px; }
+        .comment-form select, .comment-form textarea { padding: 10px; border-radius: 5px; border: 1px solid #ccc; font-family: Arial;}
+        .comment-form button { background: #4caf50; color: white; padding: 10px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <h2>CookBook :DR2</h2>
+        <a href="/">🏠 Home</a>
+        <a href="/add-recipe">➕ Add Recipe</a>
+        <a href="/my-recipes">🍳 My Recipes</a>
+        <a href="/favorites">❤️ Favorites</a>
+        <a href="/profile">👤 Profile & Settings</a>
+        {% if session.get('is_admin') %}
+        <a href="/admin" style="color:#ffb300; border-top:1px solid #2c3e50; margin-top:15px;">🛡️ Admin Panel</a>
+        {% endif %}
+    </div>
+    <div class="main-content">
+        <a href="/" style="text-decoration:none; color: #4caf50; font-weight:bold;">← Back to Home</a>
+        <br><br>
+        <div class="detail-card">
+            <img src="{{ recipe.image_url }}" alt="{{ recipe.title }}">
+            <div class="detail-info">
+                <h1 style="margin-top: 0; display: inline-block;">{{ recipe.title }}</h1>
+                
+                {% if avg_rating > 0 %}
+                    <span style="font-size: 1.2rem; margin-left: 10px; color: #ffb300; font-weight: bold;">⭐ {{ avg_rating }}</span>
+                {% endif %}
+                
+                <p style="color: #666; font-weight: bold;">⏱ {{ recipe.time_minutes }} mins | 👨‍🍳 {{ recipe.difficulty }} | 👤 Uploaded By: {{ recipe.author }}</p>
+                
+                <div class="ingredients-list">
+                    <h3>Ingredients:</h3>
+                    {% for item in recipe.ingredients %}
+                        <span>{{ item }}</span>
+                    {% endfor %}
+                </div>
+
+                <h3>Instructions:</h3>
+                <div class="instructions">{{ recipe.instructions }}</div>
+                
+                <form action="/favorite/{{ recipe._id }}" method="POST" style="margin-top: 30px;">
+                    <button type="submit" style="background: #ff4081; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-size: 1rem; font-weight: bold;">❤️ Save to Favorites</button>
+                </form>
+
+                <!-- NEW COMMENTS SECTION -->
+                <div class="comments-section">
+                    <h2>Reviews & Comments</h2>
+                    
+                    <form class="comment-form" action="/recipe/{{ recipe._id }}/comment" method="POST">
+                        <label>Rate this recipe:</label>
+                        <select name="rating" required>
+                            <option value="5">⭐⭐⭐⭐⭐ - Excellent</option>
+                            <option value="4">⭐⭐⭐⭐ - Good</option>
+                            <option value="3">⭐⭐⭐ - Average</option>
+                            <option value="2">⭐⭐ - Below Average</option>
+                            <option value="1">⭐ - Poor</option>
+                        </select>
+                        <textarea name="comment_text" rows="3" placeholder="Leave your review..." required></textarea>
+                        <button type="submit">Post Review</button>
+                    </form>
+
+                    {% if recipe.comments %}
+                        {% for comment in recipe.comments|reverse %}
+                        <div class="comment-box">
+                            <strong style="color: #1a2530;">{{ comment.username }}</strong> 
+                            <span style="color: #ffb300; margin-left: 5px;">{{ "⭐" * comment.rating }}</span>
+                            <p style="margin: 10px 0 0 0; color: #444; line-height: 1.4;">{{ comment.text }}</p>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <p style="color: #666;">No reviews yet. Be the first to try it and rate it!</p>
+                    {% endif %}
+                </div>
+                
+            </div>
+        </div>
+    </div>
+</body>
+</html>

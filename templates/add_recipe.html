@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Add Recipe - CookBook :DR2</title>
+    <style>
+        body { margin: 0; font-family: Arial, sans-serif; display: flex; background: #f4f6f8; }
+        .sidebar { width: 220px; background: #1a2530; color: white; height: 100vh; padding: 20px; position: fixed; }
+        .sidebar h2 { color: #4caf50; }
+        .sidebar a { display: block; color: #b0bec5; text-decoration: none; padding: 15px 0; border-bottom: 1px solid #2c3e50; }
+        .sidebar a:hover { color: white; }
+        .main-content { margin-left: 260px; padding: 40px; flex: 1; }
+        .recipe-form { display: flex; flex-direction: column; gap: 15px; max-width: 600px; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        .recipe-form input, .recipe-form select, .recipe-form textarea { padding: 12px; border: 1px solid #ccc; border-radius: 6px; font-size: 1rem; font-family: Arial;}
+        .recipe-form button { padding: 12px; background: #4caf50; color: white; border: none; border-radius: 6px; font-size: 1rem; cursor: pointer; font-weight: bold; }
+        .success-msg { color: #2e7d32; background: #e8f5e9; padding: 10px; border-radius: 6px; margin-bottom: 15px; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <h2>CookBook :DR2</h2>
+        <a href="/">🏠 Home</a>
+        <a href="/add-recipe" style="color:white;">➕ Add Recipe</a>
+        <a href="/my-recipes">🍳 My Recipes</a>
+        <a href="/favorites">❤️ Favorites</a>
+        <a href="/profile">👤 Profile & Settings</a>
+        {% if session.get('is_admin') %}
+        <a href="/admin" style="color:#ffb300; border-top:1px solid #2c3e50; margin-top:15px;">🛡️ Admin Panel</a>
+        {% endif %}
+    </div>
+    <div class="main-content">
+        <h1>Add a Dorm Recipe</h1>
+        {% if success %}<div class="success-msg">✅ Recipe successfully added to MongoDB!</div>{% endif %}
+        <form class="recipe-form" action="/add-recipe" method="POST">
+            <input type="text" name="title" placeholder="Recipe Name (e.g. Cheese Toast)" required>
+            <input type="text" name="image_url" placeholder="Image URL (Unsplash link)" required>
+            <input type="text" name="ingredients" placeholder="Ingredients (comma separated: egg, bread, salt)" required>
+            <textarea name="instructions" placeholder="Type instructions here..." rows="5" required></textarea>
+            <input type="number" name="time_minutes" placeholder="Cooking Time (minutes)" required>
+            
+            <select name="difficulty" required>
+                <option value="Easy">Easy</option><option value="Medium">Medium</option><option value="Hard">Hard</option>
+            </select>
+            <!-- Users can now type ANY new category! -->
+            <input type="text" name="tag" placeholder="Category (e.g. Italian, Midnight Snack, Vegan)" required>
+            
+            <button type="submit">Publish to Feed</button>
+        </form>
+    </div>
+</body>
+</html>

@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Profile - CookBook :DR2</title>
+    <style>
+        body { margin: 0; font-family: Arial, sans-serif; display: flex; background: #f4f6f8; }
+        .sidebar { width: 220px; background: #1a2530; color: white; height: 100vh; padding: 20px; position: fixed; }
+        .sidebar h2 { color: #4caf50; }
+        .sidebar a { display: block; color: #b0bec5; text-decoration: none; padding: 15px 0; border-bottom: 1px solid #2c3e50; }
+        .sidebar a:hover { color: white; }
+        .main-content { margin-left: 260px; padding: 40px; flex: 1; }
+        .profile-card { background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); max-width: 400px; }
+        .stat { font-size: 1.1rem; margin: 10px 0; padding-bottom: 10px; border-bottom: 1px solid #eee; }
+        .action-btn { display: inline-block; margin-top: 20px; padding: 10px 20px; color: white; text-decoration: none; border-radius: 6px; font-weight: bold; margin-right: 10px;}
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <h2>CookBook :DR2</h2>
+        <a href="/">🏠 Home</a>
+        <a href="/add-recipe">➕ Add Recipe</a>
+        <a href="/my-recipes">🍳 My Recipes</a>
+        <a href="/favorites">❤️ Favorites</a>
+        <a href="/profile" style="color:white;">👤 Profile & Settings</a>
+        {% if session.get('is_admin') %}
+        <a href="/admin" style="color:#ffb300; border-top:1px solid #2c3e50; margin-top:15px;">🛡️ Admin Panel</a>
+        {% endif %}
+    </div>
+    <div class="main-content">
+        <h1>Profile & Settings</h1>
+        <div class="profile-card">
+            <h2>Welcome, {{ user.username }}!</h2>
+            <div class="stat">📝 <strong>Bio:</strong> {{ user.bio if user.bio else "No bio added yet." }}</div>
+            <div class="stat">🍳 <strong>Recipes Uploaded:</strong> {{ uploads }}</div>
+            <div class="stat">❤️ <strong>Saved Favorites:</strong> {{ favs }}</div>
+            
+            <a href="/edit-profile" class="action-btn" style="background: #4caf50;">✏️ Edit Profile</a>
+            <a href="/logout" class="action-btn" style="background: #e53935;">Log Out</a>
+        </div>
+    </div>
+</body>
+</html>

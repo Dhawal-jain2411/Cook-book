@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Admin Panel - CookBook :DR2</title>
+    <style>
+        body { margin: 0; font-family: Arial, sans-serif; display: flex; background: #f4f6f8; }
+        .sidebar { width: 220px; background: #1a2530; color: white; height: 100vh; padding: 20px; position: fixed; }
+        .sidebar h2 { color: #4caf50; }
+        .sidebar a { display: block; color: #b0bec5; text-decoration: none; padding: 15px 0; border-bottom: 1px solid #2c3e50; }
+        .sidebar a:hover { color: white; }
+        .main-content { margin-left: 260px; padding: 40px; flex: 1; }
+        
+        .admin-table { width: 100%; border-collapse: collapse; background: white; margin-bottom: 40px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        .admin-table th, .admin-table td { padding: 15px; border: 1px solid #ddd; text-align: left; }
+        .admin-table th { background: #1a2530; color: white; }
+        
+        .btn-danger { background: #e53935; color: white; padding: 6px 12px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; }
+        .btn-warning { background: #ffb300; color: white; padding: 6px 12px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; }
+        .btn-success { background: #4caf50; color: white; padding: 6px 12px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; }
+        .btn-admin { background: #2980b9; color: white; padding: 6px 12px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; }
+        .btn-demote { background: #8e44ad; color: white; padding: 6px 12px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <h2>CookBook :DR2</h2>
+        <a href="/">🏠 Home</a>
+        <a href="/add-recipe">➕ Add Recipe</a>
+        <a href="/my-recipes">🍳 My Recipes</a>
+        <a href="/favorites">❤️ Favorites</a>
+        <a href="/profile">👤 Profile & Settings</a>
+        <a href="/admin" style="color:#ffb300; border-top:1px solid #2c3e50; margin-top:15px;">🛡️ Admin Panel</a>
+    </div>
+    
+    <div class="main-content">
+        <h1>🛡️ Admin Dashboard</h1>
+        
+        <h2>Manage Users & Roles</h2>
+        <table class="admin-table">
+            <tr>
+                <th>Username</th>
+                <th>Status</th>
+                <th>Role</th>
+                <th>Action</th>
+            </tr>
+            {% for user in users %}
+            <tr>
+                <td>{{ user.username }}</td>
+                <td>
+                    {% if user.status == 'active' %}
+                        <span style="color: green; font-weight: bold;">ACTIVE</span>
+                    {% else %}
+                        <span style="color: red; font-weight: bold;">DISABLED</span>
+                    {% endif %}
+                </td>
+                <td>
+                    <span style="font-weight: bold; color: {% if user.is_admin %}#ffb300{% else %}#666{% endif %};">
+                        {% if user.is_admin %}ADMIN{% else %}USER{% endif %}
+                    </span>
+                </td>
+                <td style="display: flex; gap: 10px;">
+                    {% if user.username != 'admin' %}
+                    <!-- Promote/Demote Form -->
+                    <form action="/admin/toggle_admin/{{ user.username }}" method="POST" style="margin:0;">
+                        {% if user.is_admin %}
+                            <button type="submit" class="btn-demote">Demote to User</button>
+                        {% else %}
+                            <button type="submit" class="btn-admin">Make Admin</button>
+                        {% endif %}
+                    </form>
+                    
+                    <!-- Enable/Disable Form -->
+                    <form action="/admin/toggle_user/{{ user.username }}" method="POST" style="margin:0;">
+                        {% if user.status == 'active' %}
+                            <button type="submit" class="btn-warning">Disable Account</button>
+                        {% else %}
+                            <button type="submit" class="btn-success">Enable Account</button>
+                        {% endif %}
+                    </form>
+                    {% else %}
+                        <span style="color: #999; font-style: italic;">Root Admin (Cannot modify)</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </table>
+
+        <h2>Manage All Recipes</h2>
+        <table class="admin-table">
+            <tr>
+                <th>Recipe Title</th>
+                <th>Author</th>
+                <th>Action</th>
+            </tr>
+            {% for recipe in recipes %}
+            <tr>
+                <td>{{ recipe.title }}</td>
+                <td>{{ recipe.author }}</td>
+                <td>
+                    <form action="/delete-recipe/{{ recipe._id }}" method="POST" style="margin:0;">
+                        <button type="submit" class="btn-danger">Delete Recipe</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
+</body>
+</html>
