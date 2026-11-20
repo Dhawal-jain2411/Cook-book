@@ -10,10 +10,11 @@
         .sidebar a:hover { color: white; }
         .main-content { margin-left: 260px; padding: 40px; flex: 1; }
         .recipe-form { display: flex; flex-direction: column; gap: 15px; max-width: 600px; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
-        .recipe-form input, .recipe-form select, .recipe-form textarea { padding: 12px; border: 1px solid #ccc; border-radius: 6px; font-size: 1rem; font-family: Arial;}
+        .recipe-form input, .recipe-form select, .recipe-form textarea { padding: 12px; border: 1px solid #ccc; border-radius: 6px; font-size: 1rem; font-family: Arial; }
         .recipe-form button { padding: 12px; background: #4caf50; color: white; border: none; border-radius: 6px; font-size: 1rem; cursor: pointer; font-weight: bold; }
         .success-msg { color: #2e7d32; background: #e8f5e9; padding: 10px; border-radius: 6px; margin-bottom: 15px; font-weight: bold; }
     </style>
+    <link rel="stylesheet" href="{{ url_for('static', filename='watermark.css') }}">
 </head>
 <body>
     <div class="sidebar">
@@ -36,15 +37,41 @@
             <input type="text" name="ingredients" placeholder="Ingredients (comma separated: egg, bread, salt)" required>
             <textarea name="instructions" placeholder="Type instructions here..." rows="5" required></textarea>
             <input type="number" name="time_minutes" placeholder="Cooking Time (minutes)" required>
-            
+
             <select name="difficulty" required>
-                <option value="Easy">Easy</option><option value="Medium">Medium</option><option value="Hard">Hard</option>
+                <option value="Easy">Easy</option>
+                <option value="Medium">Medium</option>
+                <option value="Hard">Hard</option>
             </select>
-            <!-- Users can now type ANY new category! -->
-            <input type="text" name="tag" placeholder="Category (e.g. Italian, Midnight Snack, Vegan)" required>
-            
+
+            <select name="tag" id="category-select" required onchange="toggleCustomCategory()">
+                <option value="" disabled selected>Select a Category</option>
+                {% for cat in categories %}
+                <option value="{{ cat }}">{{ cat }}</option>
+                {% endfor %}
+                <option value="__other__"> Other (Add New Category)</option>
+            </select>
+
+            <input type="text" name="custom_tag" id="custom-category-input" placeholder="Enter new category name (e.g. Italian, Vegan)" style="display: none;">
+
             <button type="submit">Publish to Feed</button>
         </form>
     </div>
+
+    <script>
+        function toggleCustomCategory() {
+            const select = document.getElementById("category-select");
+            const customInput = document.getElementById("custom-category-input");
+            if (select.value === "__other__") {
+                customInput.style.display = "block";
+                customInput.required = true;
+                customInput.focus();
+            } else {
+                customInput.style.display = "none";
+                customInput.required = false;
+                customInput.value = "";
+            }
+        }
+    </script>
 </body>
 </html>

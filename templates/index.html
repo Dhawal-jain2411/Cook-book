@@ -12,15 +12,23 @@
         .main-content { margin-left: 260px; padding: 40px; flex: 1; }
         .search-bar-container { display: flex; gap: 10px; margin-bottom: 30px; background: white; padding: 15px; border-radius: 10px; }
         .search-bar-container input, .search-bar-container select { flex: 1; padding: 10px; border: 1px solid #ccc; border-radius: 5px; }
-        .search-bar-container button { padding: 10px 20px; background: #4caf50; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;}
+        .search-bar-container button { padding: 10px 20px; background: #4caf50; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; }
         .recipe-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 20px; }
-        .recipe-card { background: white; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1); cursor: pointer; text-decoration: none; color: black; display: block; transition: transform 0.2s;}
+        .recipe-card { background: white; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: transform 0.2s; }
         .recipe-card:hover { transform: translateY(-5px); }
-        .recipe-card img { width: 100%; height: 200px; object-fit: cover; }
+        .recipe-card img { width: 100%; height: 200px; object-fit: cover; display: block; }
         .recipe-info { padding: 15px; }
-        .recipe-title { font-weight: bold; font-size: 1.1rem; margin-bottom: 10px; }
+        .recipe-title { font-weight: bold; font-size: 1.1rem; margin-bottom: 6px; color: #1a2530; text-decoration: none; display: block; }
+        .recipe-title:hover { color: #4caf50; }
+        .rating-badge { color: #f59e0b; font-weight: bold; font-size: 0.9rem; margin-bottom: 8px; }
         .tag { background: #e8f5e9; color: #2e7d32; padding: 3px 8px; border-radius: 4px; font-size: 0.8rem; }
+        .fav-btn { border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 0.8rem; font-weight: bold; }
+        .fav-saved { background: #ff4081; color: white; }
+        .fav-unsaved { background: #eceff1; color: #37474f; }
+        .fav-unsaved:hover { background: #cfd8dc; }
     </style>
+    <link rel="stylesheet" href="{{ url_for('static', filename='watermark.css') }}">
+
 </head>
 <body>
     <div class="sidebar">
@@ -40,7 +48,6 @@
             <input type="text" name="search" placeholder="Search by food OR ingredients (e.g. bread, maggi, paneer...)">
             <select name="category">
                 <option value="">All Categories</option>
-                <!-- Dynamic categories loaded straight from MongoDB! -->
                 {% for cat in categories %}
                 <option value="{{ cat }}">{{ cat }}</option>
                 {% endfor %}
@@ -49,19 +56,32 @@
         </form>
         <div class="recipe-grid">
             {% for recipe in recipes %}
-            <a href="/recipe/{{ recipe._id }}" class="recipe-card">
-                <img src="{{ recipe.image_url }}" alt="Recipe Image">
+            <div class="recipe-card">
+                <a href="/recipe/{{ recipe._id }}">
+                    <img src="{{ recipe.image_url }}" alt="Recipe Image">
+                </a>
                 <div class="recipe-info">
-                    <div class="recipe-title">{{ recipe.title }}</div>
-                    <p style="color: #666; font-size: 0.9rem;">⏱ {{ recipe.time_minutes }} mins | 👨‍🍳 {{ recipe.difficulty }}</p>
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px;">
+                    <a href="/recipe/{{ recipe._id }}" class="recipe-title">{{ recipe.title }}</a>
+                    <div class="rating-badge">
+                        {% if recipe.avg_rating > 0 %}
+                            ⭐ {{ recipe.avg_rating }} / 5
+                        {% else %}
+                            <span style="color: #999; font-weight: normal;">☆ No ratings yet</span>
+                        {% endif %}
+                    </div>
+                    <p style="color: #666; font-size: 0.9rem; margin: 4px 0 10px 0;">⏱ {{ recipe.time_minutes }} mins | 👨‍🍳 {{ recipe.difficulty }}</p>
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
                         <span class="tag">{{ recipe.tag }}</span>
                         <form action="/favorite/{{ recipe._id }}" method="POST" style="margin: 0;">
-                            <button type="submit" style="background: #ff4081; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 0.8rem; font-weight: bold;">❤️ Save</button>
+                            {% if recipe._id|string in user_favs %}
+                                <button type="submit" class="fav-btn fav-saved" title="Click to remove from favorites">❤️ Saved</button>
+                            {% else %}
+                                <button type="submit" class="fav-btn fav-unsaved" title="Click to add to favorites">🤍 Save</button>
+                            {% endif %}
                         </form>
                     </div>
                 </div>
-            </a>
+            </div>
             {% endfor %}
         </div>
     </div>

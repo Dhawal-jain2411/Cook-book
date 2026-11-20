@@ -8,7 +8,7 @@ import certifi
 
 load_dotenv()
 app = Flask(__name__)
-app.secret_key = "dr2_super_secret_key" 
+app.secret_key = "dr2_super_secret_key"
 
 client = MongoClient(
     os.getenv("MONGO_URI"),
@@ -20,6 +20,15 @@ db = client["cookbook_db"]
 recipes_collection = db["recipes"]
 users_collection = db["users"]
 
+def attach_avg_ratings(recipes):
+    for r in recipes:
+        comments = r.get("comments", [])
+        if comments:
+            r["avg_rating"] = round(sum(c.get("rating", 0) for c in comments) / len(comments), 1)
+        else:
+            r["avg_rating"] = 0
+    return recipes
+
 @app.route("/register", methods=["GET", "POST"])
 def register():
     if request.method == "POST":
@@ -27,16 +36,15 @@ def register():
         password = request.form.get("password")
         if users_collection.find_one({"username": username}):
             return render_template("register.html", error="Username already taken!")
-        
+
         hashed_password = generate_password_hash(password)
-        # The first user named "admin" gets admin rights automatically to start the chain
         is_admin = True if username == "admin" else False
-        
+
         users_collection.insert_one({
-            "username": username, 
-            "password": hashed_password, 
+            "username": username,
+            "password": hashed_password,
             "favorites": [],
-            "status": "active", 
+            "status": "active",
             "bio": "",
             "is_admin": is_admin
         })
@@ -49,11 +57,11 @@ def login():
         username = request.form.get("username").strip().lower()
         password = request.form.get("password")
         user = users_collection.find_one({"username": username})
-        
+
         if user and check_password_hash(user["password"], password):
             if user.get("status") == "disabled":
                 return render_template("login.html", error="Your account has been disabled by an Admin.")
-            
+
             session["username"] = user["username"]
             session["is_admin"] = user.get("is_admin", False)
             return redirect(url_for("home"))
@@ -71,45 +79,52 @@ def home():
     if "username" not in session: return redirect(url_for("login"))
     search_query = request.args.get("search")
     category_filter = request.args.get("category")
-    
+
     db_query = {}
-    if search_query: 
+    if search_query:
         db_query["$or"] = [
             {"title": {"$regex": search_query, "$options": "i"}},
             {"ingredients": {"$regex": search_query, "$options": "i"}}
         ]
-    if category_filter: 
+    if category_filter:
         db_query["tag"] = category_filter
-        
-    filtered_recipes = list(recipes_collection.find(db_query))
-    all_categories = recipes_collection.distinct("tag")
-    
-    return render_template("index.html", recipes=filtered_recipes, categories=all_categories)
+
+    filtered_recipes = attach_avg_ratings(list(recipes_collection.find(db_query)))
+    all_categories = sorted([c for c in recipes_collection.distinct("tag") if c])
+
+    user = users_collection.find_one({"username": session["username"]})
+    user_favs = user.get("favorites", []) if user else []
+
+    return render_template(
+        "index.html",
+        recipes=filtered_recipes,
+        categories=all_categories,
+        user_favs=user_favs
+    )
 
 @app.route("/recipe/<recipe_id>")
 def recipe_detail(recipe_id):
     if "username" not in session: return redirect(url_for("login"))
     recipe = recipes_collection.find_one({"_id": ObjectId(recipe_id)})
-    
-    # Calculate Average Rating
-    comments = recipe.get("comments", [])
-    avg_rating = 0
-    if comments:
-        avg_rating = round(sum(c.get("rating", 0) for c in comments) / len(comments), 1)
-        
-    return render_template("recipe_detail.html", recipe=recipe, avg_rating=avg_rating)
 
-# --- NEW: ADD COMMENT & RATING ---
+    comments = recipe.get("comments", [])
+    avg_rating = round(sum(c.get("rating", 0) for c in comments) / len(comments), 1) if comments else 0
+
+    user = users_collection.find_one({"username": session["username"]})
+    is_fav = recipe_id in (user.get("favorites", []) if user else [])
+
+    return render_template("recipe_detail.html", recipe=recipe, avg_rating=avg_rating, is_fav=is_fav)
+
 @app.route("/recipe/<recipe_id>/comment", methods=["POST"])
 def add_comment(recipe_id):
     if "username" not in session: return redirect(url_for("login"))
-    
+
     new_comment = {
         "username": session["username"],
         "text": request.form.get("comment_text"),
         "rating": int(request.form.get("rating"))
     }
-    
+
     recipes_collection.update_one(
         {"_id": ObjectId(recipe_id)},
         {"$push": {"comments": new_comment}}
@@ -119,43 +134,53 @@ def add_comment(recipe_id):
 @app.route("/add-recipe", methods=["GET", "POST"])
 def add_recipe():
     if "username" not in session: return redirect(url_for("login"))
+
     if request.method == "POST":
         raw_ingredients = request.form.get("ingredients")
         ingredients_list = [i.strip() for i in raw_ingredients.split(",") if i.strip()]
+
+        selected_tag = request.form.get("tag")
+        if selected_tag == "__other__":
+            final_tag = request.form.get("custom_tag", "").strip()
+        else:
+            final_tag = selected_tag.strip()
 
         new_recipe = {
             "title": request.form.get("title"),
             "image_url": request.form.get("image_url"),
             "time_minutes": int(request.form.get("time_minutes")),
             "difficulty": request.form.get("difficulty"),
-            "tag": request.form.get("tag").strip(),
+            "tag": final_tag,
             "ingredients": ingredients_list,
             "instructions": request.form.get("instructions"),
             "author": session["username"],
-            "comments": [] # Initialize empty comments array
+            "comments": []
         }
         recipes_collection.insert_one(new_recipe)
-        return render_template("add_recipe.html", success=True)
-    return render_template("add_recipe.html", success=False)
+        all_categories = sorted([c for c in recipes_collection.distinct("tag") if c])
+        return render_template("add_recipe.html", success=True, categories=all_categories)
+
+    all_categories = sorted([c for c in recipes_collection.distinct("tag") if c])
+    return render_template("add_recipe.html", success=False, categories=all_categories)
 
 @app.route("/my-recipes")
 def my_recipes():
     if "username" not in session: return redirect(url_for("login"))
-    user_recipes = list(recipes_collection.find({"author": session["username"]}))
+    user_recipes = attach_avg_ratings(list(recipes_collection.find({"author": session["username"]})))
     return render_template("my_recipes.html", recipes=user_recipes)
 
 @app.route("/edit-recipe/<recipe_id>", methods=["GET", "POST"])
 def edit_recipe(recipe_id):
     if "username" not in session: return redirect(url_for("login"))
     recipe = recipes_collection.find_one({"_id": ObjectId(recipe_id)})
-    
+
     if not recipe or (recipe["author"] != session["username"] and not session.get("is_admin")):
         return redirect(url_for("my_recipes"))
-        
+
     if request.method == "POST":
         raw_ingredients = request.form.get("ingredients")
         ingredients_list = [i.strip() for i in raw_ingredients.split(",") if i.strip()]
-        
+
         recipes_collection.update_one(
             {"_id": ObjectId(recipe_id)},
             {"$set": {
@@ -169,7 +194,7 @@ def edit_recipe(recipe_id):
             }}
         )
         return redirect(url_for("my_recipes"))
-        
+
     return render_template("edit_recipe.html", recipe=recipe)
 
 @app.route("/delete-recipe/<recipe_id>", methods=["POST"])
@@ -179,24 +204,33 @@ def delete_recipe(recipe_id):
     if recipe and (recipe["author"] == session["username"] or session.get("is_admin")):
         recipes_collection.delete_one({"_id": ObjectId(recipe_id)})
         users_collection.update_many({}, {"$pull": {"favorites": recipe_id}})
-    return redirect(request.referrer)
+    return redirect(request.referrer or url_for("home"))
 
 @app.route("/favorite/<recipe_id>", methods=["POST"])
-def add_favorite(recipe_id):
+def toggle_favorite(recipe_id):
     if "username" not in session: return redirect(url_for("login"))
-    users_collection.update_one(
-        {"username": session["username"]},
-        {"$addToSet": {"favorites": recipe_id}}
-    )
-    return redirect(request.referrer) 
+    user = users_collection.find_one({"username": session["username"]})
+    favs = user.get("favorites", []) if user else []
+
+    if recipe_id in favs:
+        users_collection.update_one(
+            {"username": session["username"]},
+            {"$pull": {"favorites": recipe_id}}
+        )
+    else:
+        users_collection.update_one(
+            {"username": session["username"]},
+            {"$addToSet": {"favorites": recipe_id}}
+        )
+    return redirect(request.referrer or url_for("home"))
 
 @app.route("/favorites")
 def favorites():
     if "username" not in session: return redirect(url_for("login"))
     user = users_collection.find_one({"username": session["username"]})
-    fav_string_ids = user.get("favorites", [])
+    fav_string_ids = user.get("favorites", []) if user else []
     obj_ids = [ObjectId(fid) for fid in fav_string_ids if ObjectId.is_valid(fid)]
-    fav_recipes = list(recipes_collection.find({"_id": {"$in": obj_ids}}))
+    fav_recipes = attach_avg_ratings(list(recipes_collection.find({"_id": {"$in": obj_ids}})))
     return render_template("favorites.html", recipes=fav_recipes)
 
 @app.route("/profile")
@@ -205,28 +239,28 @@ def profile():
     user = users_collection.find_one({"username": session["username"]})
     my_upload_count = recipes_collection.count_documents({"author": session["username"]})
     my_fav_count = len(user.get("favorites", []))
-    
+
     return render_template("profile.html", user=user, uploads=my_upload_count, favs=my_fav_count)
 
 @app.route("/edit-profile", methods=["GET", "POST"])
 def edit_profile():
     if "username" not in session: return redirect(url_for("login"))
     user = users_collection.find_one({"username": session["username"]})
-    
+
     if request.method == "POST":
         new_bio = request.form.get("bio")
         new_password = request.form.get("password")
-        
+
         update_fields = {"bio": new_bio}
-        if new_password: 
+        if new_password:
             update_fields["password"] = generate_password_hash(new_password)
-            
+
         users_collection.update_one(
             {"username": session["username"]},
             {"$set": update_fields}
         )
         return redirect(url_for("profile"))
-        
+
     return render_template("edit_profile.html", user=user)
 
 @app.route("/admin")
@@ -244,15 +278,12 @@ def toggle_user(username):
     users_collection.update_one({"username": username}, {"$set": {"status": new_status}})
     return redirect("/admin")
 
-# --- NEW: TOGGLE ADMIN ROLE ---
 @app.route("/admin/toggle_admin/<username>", methods=["POST"])
 def toggle_admin(username):
     if not session.get("is_admin"): return redirect("/")
-    
-    # Prevent the original 'admin' account from accidentally demoting itself
-    if username == "admin": 
+    if username == "admin":
         return redirect("/admin")
-        
+
     user = users_collection.find_one({"username": username})
     new_role = not user.get("is_admin", False)
     users_collection.update_one({"username": username}, {"$set": {"is_admin": new_role}})

@@ -1,0 +1,7 @@
+body {
+    background-color: #f4f6f8 !important;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180' viewBox='0 0 180 180'%3E%3Cg fill='none' stroke='%231a2530' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' opacity='0.5'%3E%3C!-- Chef Hat --%3E%3Cpath d='M32 45c-6 0-10-4-10-9s4-9 9-9c2-6 7-10 14-10s12 4 14 10c5 0 9 4 9 9s-4 9-10 9v12H32V45z'/%3E%3Cline x1='32' y1='52' x2='58' y2='52'/%3E%3C!-- Fork & Knife --%3E%3Cpath d='M125 25v18m-5-18v12c0 3 2 6 5 6s5-3 5-6V25m0 18v22'/%3E%3Cpath d='M145 25v40m0-40c5 4 7 12 7 20h-7'/%3E%3C!-- Steaming Bowl --%3E%3Cpath d='M110 125h44c0 12-10 22-22 22s-22-10-22-22z'/%3E%3Cline x1='122' y1='147' x2='142' y2='147'/%3E%3Cpath d='M122 117c0-4 3-4 3-8m7 8c0-4 3-4 3-8m7 8c0-4 3-4 3-8'/%3E%3C!-- Leaf / Herb --%3E%3Cpath d='M30 140c0-16 14-28 30-28 0 16-12 30-30 28z'/%3E%3Cpath d='M30 140l20-18'/%3E%3C/g%3E%3C/svg%3E") !important;
+    background-repeat: repeat !important;
+    background-size: 180px 180px !important;
+    background-attachment: fixed !important;
+}
